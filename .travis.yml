@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ggurbanov/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run ggurbanov/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t ggurbanov/multi-client ./client
+  - docker build -t ggurbanov/multi-nginx ./nginx
+  - docker build -t ggurbanov/multi-server ./server
+  - docker build -t ggurbanov/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ggurbanov/multi-client
+  - docker push ggurbanov/multi-nginx
+  - docker push ggurbanov/multi-server
+  - docker push ggurbanov/multi-worker
